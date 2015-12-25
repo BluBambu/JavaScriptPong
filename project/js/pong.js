@@ -1,10 +1,11 @@
 var pong = function(gameWidth, gameHeight, ctx, animFrame) {
-    var PaddleBufferSpace = 10;
+    var PaddleBufferSpace = 30;
     var BackgroundColor = '#000000';
-console.log(gameWidth + " " + gameHeight)
-    var rightPaddle = paddle(gameWidth - PaddleBufferSpace,
+
+    var rightPaddle = paddle(gameWidth, gameHeight,
+        gameWidth - PaddleBufferSpace, gameHeight / 2);
+    var leftPaddle = paddle(gameWidth, gameHeight, PaddleBufferSpace,
         gameHeight / 2);
-    var leftPaddle = paddle(PaddleBufferSpace, gameHeight / 2);
 
     ball = pongBall({
         width: gameWidth,

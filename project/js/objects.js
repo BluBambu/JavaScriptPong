@@ -1,11 +1,14 @@
-var paddle = function(posX, posY) {
+var paddle = function(gameWidth, gameHeight, posX, posY) {
     var Width = 10;
     var Height = 40;
     var Color = "#FFFFFF";
+    var DefaultPosX = posX;
+    var RecoilDelta = 3;
 
     return {
         update: function() {
             this.movePosY(ball.getY() - this.getPosY());
+            posX = lerp(posX, DefaultPosX, .1);
         },
         render: function(ctx) {
             ctx.fillStyle = Color;
@@ -18,6 +21,16 @@ var paddle = function(posX, posY) {
         },
         movePosY: function(deltaPosY) {
             posY += deltaPosY;
+
+            // Clamp to top and bottom game bounds
+            if (posY + Height / 2 > gameHeight) {
+                posY = gameHeight - Height / 2;
+            } else if (posY - Height / 2 < 0) {
+                posY = Height / 2;
+            }
+        },
+        recoil: function(isRightRecoil) {
+            posX = DefaultPosX + (isRightRecoil ? RecoilDelta : -1 * RecoilDelta);
         },
         ballCollide: function(ball) {
             return posX + Width > ball.getX() &&
@@ -52,16 +65,16 @@ var pongBall = function(gameBounds, leftPaddle, rightPaddle) {
                 velY *= -1;
                 this.update();
             } else if (rightPaddle.ballCollide(this)) {
+                rightPaddle.recoil(true);
                 velX *= -1;
             } else if (leftPaddle.ballCollide(this)) {
+                leftPaddle.recoil(false);
                 velX *= -1;
             }
         },
         render: function(ctx) {
           ctx.fillStyle = Color;
-          ctx.fillRect(posX - Width / 2,
-              posY - Width / 2,
-              Width, Width);
+          ctx.fillRect(posX - Width / 2, posY - Width / 2, Width, Width);
         },
         restart: function() {
             posX = StartX;
@@ -76,4 +89,8 @@ var pongBall = function(gameBounds, leftPaddle, rightPaddle) {
             return posY;
         }
     }
+}
+
+function lerp(x, y, t) {
+    return x + t * (y - x);
 }
