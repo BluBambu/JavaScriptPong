@@ -1,25 +1,43 @@
-var paddle = function(gameWidth, gameHeight, posX, posY) {
-    var Width = 10;
-    var Height = 40;
+var paddle = function (gameWidth, gameHeight, posX, posY) {
+    var MaxWidth = 10;
+    var MaxHeight = 35;
+    var MinWidthRatio = 50;
+    var MinHeightRatio = 3;
+    var RecoilDelta = 3;
+    var MaxVel = 5;
+
+    var Width = (gameWidth / MinWidthRatio < MaxWidth) ? gameWidth / MinWidthRatio : MaxWidth;
+    var Height = (gameHeight / MinHeightRatio < MaxHeight) ? gameHeight / MinHeightRatio : MaxHeight;
     var Color = "#FFFFFF";
     var DefaultPosX = posX;
-    var RecoilDelta = 3;
 
     return {
-        update: function() {
-            this.movePosY(ball.getY() - this.getPosY());
+        update: function (ball) {
+            // Only move if it's close to the ball
+            if ((posX > gameWidth / 2 && ball.getVelX() > 0 && ball.getX() > gameWidth / 2) ||
+                (posX < gameWidth / 2 && ball.getVelX() < 0 && ball.getX() < gameWidth / 2)) {
+                // Make sure paddle doesn't go too fast
+                var deltaY = ball.getY() - this.getPosY();
+                var maxDeltaY = deltaY && deltaY / Math.abs(deltaY) * MaxVel;
+
+                if (deltaY > 0) {
+                    this.movePosY((deltaY > maxDeltaY) ? maxDeltaY : deltaY);
+                } else {
+                    this.movePosY((deltaY < maxDeltaY) ? maxDeltaY : deltaY);
+                }
+            }
             posX = lerp(posX, DefaultPosX, .1);
         },
-        render: function(ctx) {
+        render: function (ctx) {
             ctx.fillStyle = Color;
             ctx.fillRect(posX - Width / 2,
                 posY - Height / 2,
                 Width, Height);
         },
-        getPosY: function() {
+        getPosY: function () {
             return posY;
         },
-        movePosY: function(deltaPosY) {
+        movePosY: function (deltaPosY) {
             posY += deltaPosY;
 
             // Clamp to top and bottom game bounds
@@ -29,19 +47,19 @@ var paddle = function(gameWidth, gameHeight, posX, posY) {
                 posY = Height / 2;
             }
         },
-        recoil: function(isRightRecoil) {
+        recoil: function (isRightRecoil) {
             posX = DefaultPosX + (isRightRecoil ? RecoilDelta : -1 * RecoilDelta);
         },
-        ballCollide: function(ball) {
+        ballCollide: function (ball) {
             return posX + Width > ball.getX() &&
                 posX - Width < ball.getX() &&
                 posY + Height > ball.getY() &&
                 posY - Height < ball.getY()
         }
     }
-}
+};
 
-var pongBall = function(gameBounds, leftPaddle, rightPaddle) {
+var pongBall = function (gameBounds, leftPaddle, rightPaddle) {
     var StartX = gameBounds.width / 2;
     var StartY = gameBounds.height / 2;
     var StartVelX = 3;
@@ -50,17 +68,17 @@ var pongBall = function(gameBounds, leftPaddle, rightPaddle) {
     var Width = 5;
 
     var posX = StartX;
-    var posY = StartY
+    var posY = StartY;
     var velX = StartVelX;
     var velY = StartVelY;
 
     return {
-        update: function() {
+        update: function () {
             posX += velX;
             posY += velY;
             if (posX < 0 || posX > gameBounds.width) {
                 velX *= -1;
-                restart();
+                this.restart();
             } else if (posY < 0 || posY > gameBounds.height) {
                 velY *= -1;
                 this.update();
@@ -72,25 +90,28 @@ var pongBall = function(gameBounds, leftPaddle, rightPaddle) {
                 velX *= -1;
             }
         },
-        render: function(ctx) {
-          ctx.fillStyle = Color;
-          ctx.fillRect(posX - Width / 2, posY - Width / 2, Width, Width);
+        render: function (ctx) {
+            ctx.fillStyle = Color;
+            ctx.fillRect(posX - Width / 2, posY - Width / 2, Width, Width);
         },
-        restart: function() {
+        restart: function () {
             posX = StartX;
             posY = StartY;
             velX = StartVelX;
             velY = StartVelY;
         },
-        getX() {
+        getVelX: function() {
+            return velX;
+        },
+        getX: function () {
             return posX;
         },
-        getY() {
+        getY: function () {
             return posY;
         }
     }
-}
+};
 
-function lerp(x, y, t) {
-    return x + t * (y - x);
+function lerp(x1, x2, t) {
+    return x1 + t * (x2 - x1);
 }

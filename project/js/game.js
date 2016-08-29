@@ -1,21 +1,26 @@
 Game = {
-    start: function(gameWidth, gameHeight) {
+    start: function () {
         var FramesPerSecond = 30;
-        var GameWidth = 400;
-        var GameHeight = 400;
 
         var canvas = document.getElementById("pong_canvas");
-        canvas.width =  GameWidth;
-        canvas.height = GameHeight;
+        // Make canvas as large as the parent div
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
 
         var animFrame = window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
             window.mozRequestAnimationFrame ||
-            function(callback) {
+            function (callback) {
                 window.setTimeout(callback, 1000 / FramesPerSecond)
             };
 
-        var newGame = pong(canvas.width, canvas.height, canvas.getContext('2d'),
+        this.runningGame = pong(canvas.width, canvas.height, canvas.getContext('2d'),
             animFrame);
+    },
+    restart: function () {
+        this.runningGame.stop();
+        this.start();
     }
-}
+};
